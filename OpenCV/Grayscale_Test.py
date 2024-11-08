@@ -6,10 +6,10 @@ frame_height = 720  # 세로 해상도
 fps = 30            # 프레임 속도
 
 # GStreamer 비활성화를 위해 일반 OpenCV 설정 사용 (기본 카메라 열기) -> Jetson Nano 
-# cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
 
 #맥북 캠 실행 코드
-cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(0)
 
 if not cap.isOpened():
     print("웹캠을 열 수 없습니다.")
