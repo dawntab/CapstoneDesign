@@ -2,7 +2,7 @@ import Jetson.GPIO as GPIO
 import time
 
 # 서보모터 연결 핀 설정
-SERVO_PIN = 18  
+SERVO_PIN = 33  
 
 # GPIO 설정
 GPIO.setmode(GPIO.BCM)
@@ -26,7 +26,7 @@ while True:
 
     if not(0 <= angle <= 180):
         break
-    
+
     pwm.ChangeDutyCycle(angle_to_duty_cycle(angle))
     
 
