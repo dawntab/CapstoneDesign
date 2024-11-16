@@ -5,7 +5,7 @@ import Jetson.GPIO as GPIO
 import time
 
 # 서보모터 연결 핀 설정
-SERVO_PIN = 33  
+SERVO_PIN = 18 
 
 # GPIO 설정
 GPIO.setmode(GPIO.BCM)
