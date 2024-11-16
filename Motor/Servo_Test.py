@@ -12,7 +12,7 @@ GPIO.setup(SERVO_PIN, GPIO.OUT)
 pwm = GPIO.PWM(SERVO_PIN, 50)
 
 # PWM 시작 
-pwm.start(90)
+pwm.start(0)
 time.sleep(2)  # 서보모터 초기화 시간 대기
 
 # 각도 -> Duty Cycle 변환 함수
