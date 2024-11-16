@@ -8,14 +8,14 @@ import time
 SERVO_PIN = 32 
 
 # GPIO 설정
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
 
 # PWM 객체 생성 
 pwm = GPIO.PWM(SERVO_PIN, 50)
 
 # PWM 시작 
-pwm.start(0)
+pwm.start(7.5)
 time.sleep(2)  # 서보모터 초기화 시간 대기
 
 # 각도 -> Duty Cycle 변환 함수
