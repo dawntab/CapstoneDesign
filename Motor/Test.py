@@ -1,49 +1,66 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import Jetson.GPIO as GPIO
 import time
 import subprocess
 
-# Set up pinmux using busybox devmem
-def setup_pinmux():
-    commands = [
-        "busybox devmem 0x700031fc 32 0x45",
-        "busybox devmem 0x6000d504 32 0x2",
-        "busybox devmem 0x70003248 32 0x46",
-        "busybox devmem 0x6000d100 32 0x00"
-    ]
-    for command in commands:
-        subprocess.run(command, shell=True, check=True)
+# Set the sudo password as a variable for easy updating
+sudo_password = ""
 
-# Configure pinmux
-setup_pinmux()
+# Function to run shell commands with the sudo password
+def run_command(command):
+    # Form the full command with password input
+    full_command = f"echo {sudo_password} | sudo -S {command}"
+    # Execute the command in the shell
+    subprocess.run(full_command, shell=True, check=True)
 
-# Set up GPIO for servo motor
-SERVO_PIN = 33
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(SERVO_PIN, GPIO.OUT)
-
-# Set up PWM
-pwm = GPIO.PWM(SERVO_PIN, 50)  # 50Hz for servo motor
-pwm.start(0)  # Start with no signal
-
-# Convert angle to duty cycle
-def angle_to_duty_cycle(angle):
-    return 2.5 + (angle / 180.0) * 10.0
-
+# Check if busybox is installed; if not, install it
 try:
-    while True:
-        angle = int(input("Enter angle (0 ~ 180): "))
-        if not (0 <= angle <= 180):
-            print("Angle out of range. Exiting.")
-            break
+    subprocess.run("busybox --help", shell=True, check=True)
+    print("busybox is already installed.")
+except subprocess.CalledProcessError:
+    print("busybox not found. Installing...")
+    run_command("apt update && apt install -y busybox")
 
-        duty_cycle = angle_to_duty_cycle(angle)
-        print(f"Setting angle {angle} with duty cycle {duty_cycle:.2f}")
-        pwm.ChangeDutyCycle(duty_cycle)
-        time.sleep(0.5)
-        pwm.ChangeDutyCycle(0)  # Stop PWM signal
+# Define devmem commands
+commands = [
+    "busybox devmem 0x700031fc 32 0x45",
+    "busybox devmem 0x6000d504 32 0x2",
+    "busybox devmem 0x70003248 32 0x46",
+    "busybox devmem 0x6000d100 32 0x00"
+]
+
+# Execute each devmem command
+for command in commands:
+    run_command(command)
+
+# Set up GPIO pins for servo 
+servo_pin = 33  # PWM-capable pin for servo motor
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(servo_pin, GPIO.OUT)
+
+# Configure PWM on servo 
+servo = GPIO.PWM(servo_pin, 50)  # 50Hz for servo motor
+servo.start(0)
+
+# Function to set servo angle
+def set_servo_angle(angle):
+    # Calculate duty cycle based on angle (0 to 180 degrees)
+    duty_cycle = 2 + (angle / 18)
+    servo.ChangeDutyCycle(duty_cycle)
+    time.sleep(0.5)  # Allow time for the servo to reach position
+    servo.ChangeDutyCycle(0)  # Turn off signal to avoid jitter
+
+# Example usage: Rotate servo 
+try:
+    # Rotate servo from 0 to 180 degrees and back to 0
+    #for angle in range(0, 181, 10):  # Move from 0 to 180 in 10-degree steps
+    #    set_servo_angle(angle)
+    #for angle in range(180, -1, -10):  # Move from 180 back to 0 in 10-degree steps
+    #    set_servo_angle(angle)
+    while True:
+       inputValue = int(input("put angle value : "))
+       set_servo_angle(inputValue)
 finally:
-    pwm.stop()
+    # Stop all PWM and clean up GPIO
+    servo.stop()
     GPIO.cleanup()
