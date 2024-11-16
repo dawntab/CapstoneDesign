@@ -1,22 +1,25 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import Jetson.GPIO as GPIO
 import time
 
-SERVO_PIN = 32  # BOARD 모드에서의 핀 번호
+#모터가 사용할 PWM PIN 설정
+SERVO_PIN = 33
+
+#GPIO 채널 설정
+GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
 
-pwm = GPIO.PWM(SERVO_PIN, 50)  # 50Hz PWM
-pwm.start(7.5)  # 중립 위치
+#주파수 50hz, pwm high 주기 설정
+pwm = GPIO.PWM(SERVO_PIN, 50)
+pwm.start(3.0)                
 
-try:
-    while True:
-        pwm.ChangeDutyCycle(5)  # 최소 위치
-        time.sleep(1)
-        pwm.ChangeDutyCycle(10)  # 최대 위치
-        time.sleep(1)
-except KeyboardInterrupt:
-    pwm.stop()
-    GPIO.cleanup()
+for t_high in range(30, 125):            
+    pwm.ChangeDutyCycle(t_high/10.0)     
+    time.sleep(0.02)
+    
+pwm.ChangeDutyCycle(3.0)
+time.sleep(1.0)
+pwm.ChangeDutyCycle(0.0)
+
+pwm.stop()
+GPIO.cleanup()
