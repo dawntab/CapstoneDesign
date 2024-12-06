@@ -49,8 +49,9 @@ dc_motor_pwm = GPIO.PWM(dc_motor_pwm_pin, 1000)  # 1kHz for DC motor
 servo.start(0)
 dc_motor_pwm.start(0)
 
-# Initialize servo angle
+# Initialize servo angle and motor speed
 current_angle = 90  # Start at 90 degrees
+motor_speed = 50  # Start at 50% speed
 set_servo_angle = lambda angle: servo.ChangeDutyCycle(2 + (angle / 18))
 
 # Function to set DC motor speed and direction
@@ -69,32 +70,42 @@ motor_direction = "forward"
 
 # Keyboard control handlers
 def on_press(key):
-    global current_angle, motor_running, motor_direction
+    global current_angle, motor_running, motor_direction, motor_speed
 
     try:
         if key.char == 'w':  # Move forward
             motor_direction = "forward"
             motor_running = True
-            set_dc_motor(100, "forward")
+            set_dc_motor(motor_speed, "forward")
         elif key.char == 's':  # Move backward
             motor_direction = "backward"
             motor_running = True
-            set_dc_motor(100, "backward")
+            set_dc_motor(motor_speed, "backward")
         elif key.char == 'a':  # Rotate servo left
-            if current_angle > 5:
-                current_angle -= 5
+            if current_angle > 10:  # 변경: 최소 각도를 10도보다 크게 제한
+                current_angle -= 10  # 변경: 10도씩 감소
                 set_servo_angle(current_angle)
         elif key.char == 'd':  # Rotate servo right
-            if current_angle < 175:
-                current_angle += 5
+            if current_angle < 170:  # 변경: 최대 각도를 170도로 제한
+                current_angle += 10  # 변경: 10도씩 증가
                 set_servo_angle(current_angle)
     except AttributeError:
-        pass
+        # Handle special keys
+        if key == keyboard.Key.up:  # Increase speed
+            motor_speed = min(100, motor_speed + 10)
+            if motor_running:
+                set_dc_motor(motor_speed, motor_direction)
+        elif key == keyboard.Key.down:  # Decrease speed
+            motor_speed = max(0, motor_speed - 10)
+            if motor_running:
+                set_dc_motor(motor_speed, motor_direction)
 
 def on_release(key):
     global motor_running
 
-    if key.char in ['w', 's']:
+    if key == keyboard.Key.esc:
+        return False  # Exit program on ESC
+    if hasattr(key, 'char') and key.char in ['w', 's']:
         motor_running = False
         set_dc_motor(0, motor_direction)  # Stop the motor
 
@@ -104,7 +115,7 @@ listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 # Start the keyboard listener
 listener.start()
 
-print("Control the motors using W/S (forward/backward) and A/D (servo left/right). Press ESC to quit.")
+print("Control the motors using W/S (forward/backward), A/D (servo left/right), and UP/DOWN (increase/decrease speed). Press ESC to quit.")
 
 try:
     while True:
