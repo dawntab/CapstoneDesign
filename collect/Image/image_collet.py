@@ -36,9 +36,10 @@ dc_motor_pwm = GPIO.PWM(dc_motor_pwm_pin, 1000)  # 1kHz for DC motor
 servo.start(0)
 dc_motor_pwm.start(0)
 
-# Initialize servo angle and motor speed
+# Initialize variables
 current_angle = 90  # Start at 90 degrees
 motor_speed = 0  # Start with the motor stopped
+program_running = True  # Flag to handle program termination
 
 # Function to set the servo angle
 def set_servo_angle(angle):
@@ -92,12 +93,13 @@ def on_press(key):
         pass
 
 def on_release(key):
-    global motor_speed
+    global motor_speed, program_running
     if hasattr(key, 'char') and key.char in ['w', 's']:
         motor_speed = 0
-        set_dc_motor(0, "stop")  # Stop the motor
+        set_dc_motor(0, "forward")  # Stop the motor
     elif key == keyboard.Key.esc:
-        return False  # Exit on ESC key
+        program_running = False  # Set flag to terminate the program
+        return False
 
 # Listener for keyboard events
 listener = keyboard.Listener(on_press=on_press, on_release=on_release)
@@ -105,7 +107,7 @@ listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 # Function to handle picture capturing every 1 second
 def capture_pictures():
     try:
-        while True:
+        while program_running:
             ret, frame = cap.read()
             if not ret:
                 print("Failed to grab frame. Exiting.")
@@ -130,9 +132,12 @@ try:
     capture_thread.start()
     listener.start()
 
-    capture_thread.join()
+    while program_running:
+        time.sleep(0.1)  # Main thread keeps running until ESC is pressed
+
 finally:
     # Cleanup GPIO
     servo.stop()
     dc_motor_pwm.stop()
     GPIO.cleanup()
+    print("Program terminated.")
