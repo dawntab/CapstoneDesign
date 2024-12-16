@@ -53,7 +53,12 @@ dc_motor_pwm.start(0)
 
 # Initialize servo angle
 current_angle = 90  # Start at 90 degrees
-set_servo_angle = lambda angle: servo.ChangeDutyCycle(2 + (angle / 18))
+angle_steps = [30, 60, 90, 120, 150]  # Define allowed angles
+current_index = angle_steps.index(current_angle)  # Find the index of the starting angle
+
+# Function to set servo angle with predefined steps
+def set_servo_angle(angle):
+    servo.ChangeDutyCycle(2 + (angle / 18))
 
 # Function to set DC motor speed and direction
 def set_dc_motor(speed, direction):
@@ -79,24 +84,26 @@ out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640, 480))  # Output file
 
 # Keyboard control handlers
 def on_press(key):
-    global current_angle, motor_running, motor_direction
+    global current_index, motor_running, motor_direction
 
     try:
-        if key.char == 'w':  # Move forward
-            motor_direction = "forward"
-            motor_running = True
-            set_dc_motor(100, "forward")
-        elif key.char == 's':  # Move backward
+        if key.char == 'w':  # Move backward (reverse functionality)
             motor_direction = "backward"
             motor_running = True
             set_dc_motor(100, "backward")
+        elif key.char == 's':  # Move forward (reverse functionality)
+            motor_direction = "forward"
+            motor_running = True
+            set_dc_motor(100, "forward")
         elif key.char == 'a':  # Rotate servo left
-            if current_angle > 5:
-                current_angle -= 5
+            if current_index > 0:  # Check if not at the minimum angle
+                current_index -= 1
+                current_angle = angle_steps[current_index]
                 set_servo_angle(current_angle)
         elif key.char == 'd':  # Rotate servo right
-            if current_angle < 175:
-                current_angle += 5
+            if current_index < len(angle_steps) - 1:  # Check if not at the maximum angle
+                current_index += 1
+                current_angle = angle_steps[current_index]
                 set_servo_angle(current_angle)
     except AttributeError:
         pass
@@ -114,7 +121,7 @@ listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 # Start the keyboard listener
 listener.start()
 
-print("Control the motors using W/S (forward/backward) and A/D (servo left/right). Press ESC to quit.")
+print("Control the motors using W/S (backward/forward) and A/D (servo left/right). Press ESC to quit.")
 
 try:
     while True:
@@ -149,4 +156,3 @@ finally:
     cv2.destroyAllWindows()
 
     listener.stop()
-
