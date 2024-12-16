@@ -38,7 +38,7 @@ dc_motor_pwm.start(0)
 
 # Initialize variables
 current_angle = 30  # Start at 30 degrees
-motor_speed = 0  # Start with the motor stopped
+motor_speed = 50  # Default motor speed set to 50%
 program_running = True  # Flag to handle program termination
 
 # Predefined steering angles
@@ -88,8 +88,10 @@ def on_press(key):
     try:
         if key.char == 'w':  # Move forward
             set_dc_motor(motor_speed, "forward")
+            print(f"Moving forward with speed {motor_speed}%")
         elif key.char == 's':  # Move backward
             set_dc_motor(motor_speed, "backward")
+            print(f"Moving backward with speed {motor_speed}%")
         elif key == keyboard.Key.up:  # Increase speed
             motor_speed = min(motor_speed + 10, 100)  # Max speed is 100%
             print(f"Speed increased to {motor_speed}%")
@@ -110,8 +112,9 @@ def on_press(key):
 def on_release(key):
     global motor_speed, program_running
     if hasattr(key, 'char') and key.char in ['w', 's']:
-        motor_speed = 0
-        set_dc_motor(0, "forward")  # Stop the motor
+        # Stop the motor when the key is released
+        set_dc_motor(0, "forward")  # Stop motor by setting speed to 0
+        print("Motor stopped.")
     elif key == keyboard.Key.esc:
         program_running = False  # Set flag to terminate the program
         return False
