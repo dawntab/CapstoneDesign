@@ -104,14 +104,17 @@ def on_release(key):
 # Listener for keyboard events
 listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 
-# Function to handle picture capturing every 1 second
-def capture_pictures():
+# Function to handle picture capturing and showing real-time feed
+def capture_and_show():
     try:
         while program_running:
             ret, frame = cap.read()
             if not ret:
                 print("Failed to grab frame. Exiting.")
                 break
+
+            # Show the live video feed
+            cv2.imshow("Live Feed", frame)
 
             # Generate the filename with timestamp, angle, and speed
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -122,13 +125,18 @@ def capture_pictures():
             cv2.imwrite(image_path, frame)
             print(f"Captured: {image_path}")
 
+            # Exit if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
             time.sleep(1)  # Wait for 1 second before capturing the next frame
     finally:
         cap.release()
+        cv2.destroyAllWindows()
 
 # Run both threads
 try:
-    capture_thread = threading.Thread(target=capture_pictures)
+    capture_thread = threading.Thread(target=capture_and_show)
     capture_thread.start()
     listener.start()
 
