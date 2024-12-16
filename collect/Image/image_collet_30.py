@@ -87,11 +87,15 @@ def on_press(key):
 
     try:
         if key.char == 'w':  # Move forward
-            motor_speed = 50
             set_dc_motor(motor_speed, "forward")
         elif key.char == 's':  # Move backward
-            motor_speed = 50
             set_dc_motor(motor_speed, "backward")
+        elif key == keyboard.Key.up:  # Increase speed
+            motor_speed = min(motor_speed + 10, 100)  # Max speed is 100%
+            print(f"Speed increased to {motor_speed}%")
+        elif key == keyboard.Key.down:  # Decrease speed
+            motor_speed = max(motor_speed - 10, 0)  # Min speed is 0%
+            print(f"Speed decreased to {motor_speed}%")
         elif key.char == 'a':  # Rotate servo to the previous predefined angle
             if current_angle_index > 0:
                 current_angle_index -= 1
@@ -138,6 +142,8 @@ def capture_and_show():
         # Exit if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        time.sleep(0.2)  # Capture frequency: 5 frames per second
 
 # Run both threads
 try:
