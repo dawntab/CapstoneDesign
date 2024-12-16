@@ -106,37 +106,30 @@ listener = keyboard.Listener(on_press=on_press, on_release=on_release)
 
 # Function to handle picture capturing and showing real-time feed
 def capture_and_show():
-    try:
-        while program_running:
-            ret, frame = cap.read()
-            if not ret:
-                print("Failed to grab frame. Exiting.")
-                break
+    while program_running:
+        ret, frame = cap.read()
+        if not ret:
+            print("Failed to grab frame. Exiting.")
+            break
 
-            # Show the live video feed
-            cv2.imshow("Live Feed", frame)
+        # Show the live video feed
+        cv2.imshow("Live Feed", frame)
 
-            # Generate the filename with timestamp, angle, and speed
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            image_filename = f"{timestamp}_{current_angle}_{motor_speed}.jpg"
-            image_path = os.path.join(output_dir, image_filename)
+        # Save the frame as an image
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        image_filename = f"{timestamp}_{current_angle}_{motor_speed}.jpg"
+        image_path = os.path.join(output_dir, image_filename)
+        cv2.imwrite(image_path, frame)
 
-            # Save the frame as an image
-            cv2.imwrite(image_path, frame)
-            print(f"Captured: {image_path}")
+        print(f"Captured: {image_path}")
 
-            # Exit if 'q' is pressed
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-            time.sleep(1)  # Wait for 1 second before capturing the next frame
-    finally:
-        cap.release()
-        cv2.destroyAllWindows()
+        # Exit if 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
 # Run both threads
 try:
-    capture_thread = threading.Thread(target=capture_and_show)
+    capture_thread = threading.Thread(target=capture_and_show)  # Background image capture thread
     capture_thread.start()
     listener.start()
 
@@ -144,7 +137,12 @@ try:
         time.sleep(0.1)  # Main thread keeps running until ESC is pressed
 
 finally:
-    # Cleanup GPIO
+    # Cleanup GPIO and resources
+    program_running = False
+    capture_thread.join()  # Ensure thread is terminated
+    listener.stop()
+    cap.release()  # Release camera
+    cv2.destroyAllWindows()  # Close OpenCV windows
     servo.stop()
     dc_motor_pwm.stop()
     GPIO.cleanup()
