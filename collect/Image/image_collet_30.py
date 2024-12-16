@@ -92,11 +92,13 @@ def on_press(key):
         elif key.char == 's':  # Move backward
             set_dc_motor(motor_speed, "backward")
             print(f"Moving backward with speed {motor_speed}%")
-        elif key == keyboard.Key.up:  # Increase speed
+        elif key.char == 'e':  # Increase speed
             motor_speed = min(motor_speed + 10, 100)  # Max speed is 100%
+            set_dc_motor(motor_speed, "forward")  # Apply updated speed
             print(f"Speed increased to {motor_speed}%")
-        elif key == keyboard.Key.down:  # Decrease speed
+        elif key.char == 'q':  # Decrease speed
             motor_speed = max(motor_speed - 10, 0)  # Min speed is 0%
+            set_dc_motor(motor_speed, "forward")  # Apply updated speed
             print(f"Speed decreased to {motor_speed}%")
         elif key.char == 'a':  # Rotate servo to the previous predefined angle
             if current_angle_index > 0:
