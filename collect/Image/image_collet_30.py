@@ -142,8 +142,8 @@ def capture_and_show():
 
         print(f"Captured: {image_path}")
 
-        # Exit if 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        # Exit if 't' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('t'):
             break
 
         time.sleep(0.2)  # Capture frequency: 5 frames per second
